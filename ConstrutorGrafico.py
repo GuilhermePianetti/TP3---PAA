@@ -24,4 +24,4 @@ def plot_curves_from_files(file1_path, file2_path):
     plt.show()
 
 # Exemplo de uso
-plot_curves_from_files('dados1.txt', 'dados2.txt')
+plot_curves_from_files('dados1', 'dados2')
