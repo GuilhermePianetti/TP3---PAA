@@ -1,0 +1,13 @@
+Segundo Dijkstra (1976), uma linguagem de programação é uma técnica de
+notação para programar, com a intenção de servir de veículo tanto para a
+expressão do raciocínio algorítmico quanto para a execução automática de
+um algoritmo por um computador
+Em linguagens de programação é importante classificar constantes, variáveis,
+expressões e funções de acordo com certas características, as quais indicam o
+seu tipo de dados. Este tipo deve caracterizar o conjunto de valores a que
+uma constante pertence, ou que podem ser assumidos por uma variável ou
+expressão, ou que podem ser gerados por uma função (Wirth, 1976, pp.4–40).
+Tipos simples de dados são grupos de valores indivisíveis, como os tipos
+básicos integer, boolean, char, e real do Pascal. Por exemplo, uma variável
+do tipo boolean pode assumir ou o valor verdadeiro ou o valor falso, e nenhum
+outro valor.

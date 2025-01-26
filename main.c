@@ -1,100 +1,123 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "texto.h"
-#include "BMSH.h"
-#include "KMP.h"
+#include <windows.h>
+#include "CasamentoExato/texto.h"
+#include "CasamentoExato/BMSH.h"
+#include "CasamentoExato/KMP.h"
+#include "Criptografia/cifra.h"
 
-// Função para contar o número de linhas em um arquivo
-int contarLinhas(const char *nomeArquivo) {
-    FILE *arquivo = fopen(nomeArquivo, "r");
-    if (arquivo == NULL) {
-        return 0; // Se o arquivo não existir, consideramos 0 linhas
-    }
+int main()
+{
+    int escolha, chave, frequencias[26];
+    char arquivoEntrada[100], arquivoSaida[100];
 
-    int linhas = 0;
-    int ch;
-    while ((ch = fgetc(arquivo)) != EOF) {
-        if (ch == '\n') {
-            linhas++;
+    do
+    {
+        printf("\nEscolha uma opcao:\n");
+        printf("1 - Criptografar\n");
+        printf("2 - Descriptografar\n");
+        printf("3 - Gerar chave aleatoria\n");
+        printf("4 - Analisar frequencias e adivinhar chave\n");
+        printf("5 - Buscar padrao (Casamento exato)\n");
+        printf("0 ou outro numero - Sair\n");
+        printf("Opcao: ");
+        scanf("%d", &escolha);
+
+        switch (escolha)
+        {
+        case 1:
+            printf("Digite o nome do arquivo de entrada contendo o texto(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoEntrada);
+            printf("Digite a chave de criptografia(entre 1 e 25): ");
+            scanf("%d", &chave);
+            printf("Digite o nome do arquivo de saida(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoSaida);
+            criptografar(arquivoEntrada, arquivoSaida, chave);
+            printf("Texto criptografado salvo em 'Outputs/%s'.\n", arquivoSaida);
+            break;
+        case 2:
+            printf("Digite o nome do arquivo de entrada contendo o texto(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoEntrada);
+            printf("Digite a chave de descriptografia(entre 1 e 25): ");
+            scanf("%d", &chave);
+            printf("Digite o nome do arquivo de saida(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoSaida);
+            descriptografar(arquivoEntrada, arquivoSaida, chave);
+            printf("Texto descriptografado salvo em 'Outputs/%s'.\n", arquivoSaida);
+            break;
+        case 3:
+            printf("Digite o nome do arquivo de entrada contendo o texto(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoEntrada);
+            printf("Digite o nome do arquivo de saida(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoSaida);
+            gerarChaveAleatoria(arquivoEntrada, arquivoSaida);
+            printf("Texto criptografado com chave aleatoria salvo em 'Outputs/%s'.\n", arquivoSaida);
+            break;
+        case 4:
+            printf("Digite o nome do arquivo de entrada contendo o texto(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoEntrada);
+            int totalCaracteres = 0;
+            analisarFrequencias(arquivoEntrada, frequencias);
+
+            for (int i = 0; i < 26; i++)
+            {
+                totalCaracteres += frequencias[i];
+            }
+
+            mostrarFrequencias(frequencias, totalCaracteres);
+            int chaveAdivinhada = adivinharChave(frequencias);
+            printf("Chave adivinhada: %d\n", chaveAdivinhada);
+            break;
+        case 5:
+            printf("Digite o nome do arquivo de entrada contendo o texto(Ex.: nomedoarquivo.txt): ");
+            scanf("%s", arquivoEntrada);
+
+            FILE *file = fopen(arquivoEntrada, "r");
+            if (file == NULL)
+            {
+                printf("Problemas na abertura do arquivo\n");
+                return 1;
+            }
+
+            TipoTexto T;
+            TipoPadrao P[MAXTAMPADRAO];
+
+            size_t bytesRead = fread(T, sizeof(char), MAXTAMTEXTO - 1, file);
+            T[bytesRead] = '\0';
+            fclose(file);
+
+            printf("Digite o padrao: ");
+            scanf("%s", P);
+
+            int n = strlen(T);
+            int m = strlen(P);
+
+            LARGE_INTEGER inicio1, fim1, frequencia1, inicio2, fim2, frequencia2;
+            double bmhs_time_sec, kmp_time_sec;
+
+            QueryPerformanceFrequency(&frequencia1);
+            QueryPerformanceCounter(&inicio1);
+            BMHS(T, n, P, m);
+            QueryPerformanceCounter(&fim1);
+
+            QueryPerformanceFrequency(&frequencia2);
+            QueryPerformanceCounter(&inicio2);
+            KMP(T, n, P, m);
+            QueryPerformanceCounter(&fim2);
+
+            bmhs_time_sec = (double)(fim1.QuadPart - inicio1.QuadPart) / frequencia1.QuadPart;
+            kmp_time_sec = (double)(fim2.QuadPart - inicio2.QuadPart) / frequencia2.QuadPart;
+
+            printf("Tempo de execucao do BMHS: %.9f\n", bmhs_time_sec);
+            printf("Tempo de execucao do KMP:  %.9f\n", kmp_time_sec);
+
+            break;
+        case 0:
+            printf("Encerrando o programa...\n");
+            break;
+        default:
+            printf("Opção invalida. Encerrando o programa...\n");
+            break;
         }
-    }
-    fclose(arquivo);
-    return linhas;
-}
-
-int main() {
-    struct timespec start1, end1;
-    struct timespec start2, end2;
-
-    char *nomeArquivo1 = "dados1";
-    char *nomeArquivo2 = "dados2";
-
-    int linhas1 = contarLinhas(nomeArquivo1);
-    int linhas2 = contarLinhas(nomeArquivo2);
-
-    TipoTexto T;
-    TipoPadrao P[MAXTAMPADRAO];
-
-    FILE *file;
-    char nameFile[256];
-    char name[256] = "";
-
-    printf("Digite o nome do arquivo de texto: ");
-    scanf("%s", nameFile);
-
-    strcat(name, nameFile);
-
-    file = fopen(nameFile, "r");
-    if (file == NULL) {
-        printf("Problemas na abertura do arquivo\n");
-        return 1;
-    }
-
-    size_t bytesRead = fread(T, sizeof(char), MAXTAMTEXTO - 1, file);
-    T[bytesRead] = '\0';
-    fclose(file);
-
-    printf("Digite o padrao: ");
-    scanf("%s", P);
-
-    int n = strlen(T);
-    int m = strlen(P);
-
-    clock_gettime(CLOCK_MONOTONIC, &start1);
-    BMHS(T, n, P, m);
-    clock_gettime(CLOCK_MONOTONIC, &end1);
-
-    clock_gettime(CLOCK_MONOTONIC, &start2);
-    KMP(T, n, P, m);
-    clock_gettime(CLOCK_MONOTONIC, &end2);
-
-    double time1 = (end1.tv_sec - start1.tv_sec) + 
-                        (end1.tv_nsec - start1.tv_nsec) / 1e9;
-
-    double time2 = (end2.tv_sec - start2.tv_sec) + 
-                        (end2.tv_nsec - start2.tv_nsec) / 1e9;
-
-    printf("Tempo de execução do BMHS: %lf\n", time1);
-    printf("Tempo de execução do KMP: %lf\n", time2);
-
-    // Abre os arquivos no modo de append para adicionar os resultados
-    FILE *arquivo1 = fopen(nomeArquivo1, "a");
-    if (arquivo1 == NULL) {
-        perror("Erro ao abrir o arquivo para escrita");
-        return 1;
-    }
-    fprintf(arquivo1, "%d %lf\n", linhas1 + 1, time1);
-    fclose(arquivo1);
-
-    FILE *arquivo2 = fopen(nomeArquivo2, "a");
-    if (arquivo2 == NULL) {
-        perror("Erro ao abrir o arquivo para escrita");
-        return 1;
-    }
-    fprintf(arquivo2, "%d %lf\n", linhas2 + 1, time2);
-    fclose(arquivo2);
+    } while (escolha >= 1 && escolha <= 4);
 
     return 0;
 }

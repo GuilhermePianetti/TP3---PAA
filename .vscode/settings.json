@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "kmp.h": "c",
+        "bmsh.h": "c"
+    }
+}
