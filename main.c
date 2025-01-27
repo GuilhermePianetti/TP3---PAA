@@ -4,6 +4,23 @@
 #include "CasamentoExato/KMP.h"
 #include "Criptografia/cifra.h"
 
+int contarLinhas(const char *nomeArquivo) {
+    FILE *arquivo = fopen(nomeArquivo, "r");
+    if (arquivo == NULL) {
+        // Se o arquivo não existir, será criado posteriormente
+        return 0;
+    }
+
+    int linhas = 0;
+    char buffer[1024]; // Buffer para leitura de linhas
+    while (fgets(buffer, sizeof(buffer), arquivo)) {
+        linhas++;
+    }
+
+    fclose(arquivo);
+    return linhas;
+}
+
 int main()
 {
     int escolha, chave, frequencias[26];
@@ -108,6 +125,29 @@ int main()
 
             printf("Tempo de execucao do BMHS: %.9f\n", bmhs_time_sec);
             printf("Tempo de execucao do KMP:  %.9f\n", kmp_time_sec);
+
+            char *nomeArquivo1 = "dados1.txt";
+            char *nomeArquivo2 = "dados2.txt";
+            int linhas1 = 0, linhas2 = 0;
+
+             linhas1 = contarLinhas(nomeArquivo1);
+            linhas2 = contarLinhas(nomeArquivo2);
+
+            FILE *arquivo1 = fopen(nomeArquivo1, "a");
+            if (arquivo1 == NULL) {
+                perror("Erro ao abrir o arquivo para escrita");
+                return 1;
+            }
+            fprintf(arquivo1, "%d %lf\n", linhas1 + 1, bmhs_time_sec);
+            fclose(arquivo1);
+
+            FILE *arquivo2 = fopen(nomeArquivo2, "a");
+            if (arquivo2 == NULL) {
+                perror("Erro ao abrir o arquivo para escrita");
+                return 1;
+            }
+            fprintf(arquivo2, "%d %lf\n", linhas2 + 1, kmp_time_sec);
+            fclose(arquivo2);
 
             break;
         case 0:
